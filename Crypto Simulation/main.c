@@ -2,7 +2,12 @@
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
+#include <conio.h>
 #define startingBalance 5000 // Kullanicinin baslangictaki bakiyesi. ($)
+#define numberOfCoins 5 // Programda kullanilan coin sayisi
+
+// Bu programda kullanilan coin fiyatlari, gercek degerleri yansitmamaktadir. Fiyatlar rastgele olarak belirlenmis ve rastgele olarak degismektedir.
+
 
 int program_mode = 1; // Bu degiskeni global yapmamizin sebebi fonksiyonlarin icinden bu degiskene ulasabilmemiz icin.
 
@@ -22,12 +27,12 @@ struct Coin {
 	char name[20];
 	int cost;	
 	
-}coins[3];
+}coins[numberOfCoins];
 
 struct User { //*
 	
 	float userBalance;
-	float coinNumbers[3]; // Kullanicida bulunan coin miktarlarini tutan dizi.
+	float coinNumbers[numberOfCoins]; // Kullanicida bulunan coin miktarlarini tutan dizi.
 	float profitRate; // Kullanicinin kâr oranini tutan degisken.
 	
 }user;
@@ -39,7 +44,7 @@ void readNames(struct Coin *coin) {
 	char temp[20];
 	filep = fopen("coinNames.txt", "r");
 	
-	for(i = 0; i < 3; i++) {
+	for(i = 0; i < numberOfCoins; i++) {
 		
 		fscanf(filep, "%s", &temp);
 		strcpy(coin->name, temp);
@@ -55,7 +60,7 @@ void setCoinCost(struct Coin *coin) {
 	int i, temp;
 	filep2 = fopen("coinCosts.txt", "r");
 	
-	for(i = 0; i < 3; i++) {
+	for(i = 0; i < numberOfCoins; i++) {
 		
 		fscanf(filep2, "%d", &coin->cost);
 		coin++;
@@ -70,7 +75,7 @@ void readCoinNumbers(struct User *user) {
 	filep3 = fopen("coinNumbers.txt", "r");
 	int i;
 	
-	for(i = 0; i < 3; i++) {
+	for(i = 0; i < numberOfCoins; i++) {
 		
 		fscanf(filep3, "%f", &user->coinNumbers[i]);
 	}
@@ -84,7 +89,7 @@ void updateCoinNumbers(struct User *user) {
 	filep3 = fopen("coinNumbers.txt", "w");
 	int i;
 	
-	for(i = 0; i < 3; i++) {
+	for(i = 0; i < numberOfCoins; i++) {
 		
 		fprintf(filep3, "%f\n", user->coinNumbers[i]);
 	}
@@ -99,7 +104,7 @@ void updateCoinCost(struct Coin *coin) {
 	
 	int i;
 	
-	for(i = 0; i < 3; i++) {
+	for(i = 0; i < numberOfCoins; i++) {
 		
 		fprintf(filep, "%d\n", coin->cost);
 		coin++;
@@ -153,31 +158,100 @@ void showMenu(struct Coin coins[], int size) {
 	printf("\nKazanc durumunuzu goruntulemek icin 'k' tusuna basiniz.\n");
 	printf("\nProgrami sonlandirmak icin 'x' tusuna basiniz.");
 	printf("\n\nBakiyeniz: %.2f$\n\n", user.userBalance);
+
+
 }
 
 // Kullanicinin istedigi coine para yatirmasini saglayan fonksiyon. *
 void buy(int choice) {
 	
-	// choice parametresi kullanicinin sectigi coinin kac numaralý coin oldugunu belirtir. Bu sayede coins dizisinde ve coinNumbers dizisinde o coinin indexine ulasabiliriz.
-	float depositBalance, coinNumber;
-	printf("Ne kadar para yatirmak istiyorsunuz ? (Bakiyeniz: %.2f$) : ", user.userBalance);
-	scanf("%f", &depositBalance);
-	
-	while(depositBalance > user.userBalance) {
+	if(user.userBalance == 0) {
 		
-		printf("Girdiginiz miktar bakiyenizden fazla olamaz. (Bakiyeniz: %.2f || Girilen miktar: %.2f)\n\nLutfen para miktarini yeniden giriniz: ", user.userBalance, depositBalance);
-		scanf("%f", &depositBalance);
+		printf("Coin alabilmek icin yeterince bakiyeniz bulunmamaktadir. Anasayfaya yonlendiriliyorsunuz ...");
+		sleep(3);
+		showMenu(coins, numberOfCoins);
+		
 	}
 	
-	coinNumber = depositBalance / coins[choice - 1].cost;
-	user.userBalance -= depositBalance;
-	user.coinNumbers[choice - 1] += coinNumber;
-	printf("%.2f$ ile %.2f adet %s satin aldiniz.\n\n", depositBalance, coinNumber, coins[choice - 1].name);
-	sleep(2);
+	else {
+	
+		// choice parametresi kullanicinin sectigi coinin kac numaralý coin oldugunu belirtir. Bu sayede coins dizisinde ve coinNumbers dizisinde o coinin indexine ulasabiliriz.
+		float depositBalance, coinNumber;
+		printf("Ne kadar para yatirmak istiyorsunuz ? (Bakiyeniz: %f$) : ", user.userBalance);
+		scanf("%f", &depositBalance);
+		
+		while(depositBalance > user.userBalance) {
+			
+			printf("Girdiginiz miktar bakiyenizden fazla olamaz. (Bakiyeniz: %f || Girilen miktar: %f)\n\nLutfen para miktarini yeniden giriniz: ", user.userBalance, depositBalance);
+			scanf("%f", &depositBalance);
+		}
+		
+		coinNumber = depositBalance / coins[choice - 1].cost;
+		user.userBalance -= depositBalance;
+		user.coinNumbers[choice - 1] += coinNumber;
+		printf("%f$ ile %f adet %s satin aldiniz.\n\n", depositBalance, coinNumber, coins[choice - 1].name);
+		sleep(4);
+	
+	}
 }
 
 // Kullanicinin sahip oldugu coini istedigi miktarda satabilmesini saglayan fonksiyon. *
 void sell(int choice) {
+	
+	
+	if(user.coinNumbers[choice - 1] == 0) {
+		
+		printf("Bu coinden elinizde hic bulunmadigi icin satma islemini gerceklestiremezsiniz. Anasayfaya yonlendiriliyorsunuz...");
+		sleep(3);
+		showMenu(coins, numberOfCoins);
+	}
+	
+	else {
+	
+		printf("\nBu coinden elinizde bulunan adet sayisi: %f", user.coinNumbers[choice - 1]);
+		float num;
+		printf("\nKac adet satmak istiyorsunuz ?\nAdet giriniz: ");
+		scanf("%f", &num);
+		
+		while(num <= 0) {
+			
+			printf("Girdiginiz deger 0 veya 0'dan kucuk olamaz.");
+			printf("\nSatmak istediginiz adet sayisini tekrar giriniz: ");
+			scanf("%f", &num);
+		}
+		
+		if(num > user.coinNumbers[choice - 1]) {
+			
+			num = user.coinNumbers[choice - 1]; // Eger kullanici elinde bulunan miktardan fazla satmaya calisirsa, elindeki miktarin tamamini satmis olacak.
+			
+			switch(choice) {
+				
+				case 1:
+					printf("Elinizdeki butun Bitcoinleri sattiniz.\n");
+					break;
+				
+				case 2:
+					printf("Elinizdeki butun Ethereum coinleri sattiniz.\n");
+					break;
+				case 3:
+					printf("Elinizdeki butun Dogecoinleri sattiniz.\n");
+					break;
+				
+				case 4:
+					printf("Elinizdeki butun Litecoinleri sattiniz.\n");
+					break;
+					
+				case 5:
+					printf("Elinizdeki butun Tether coinleri sattiniz.\n");
+					break;
+			}
+		}
+		
+		user.userBalance += num * coins[choice - 1].cost;
+		user.coinNumbers[choice - 1] -= num;
+		printf("Satis islemi basariyla gerceklestirildi. Satilan adet: %f | Hesabiniza aktarilan para: %f", num, num * coins[choice - 1].cost);
+		sleep(4);
+	}
 	
 }
 
@@ -188,6 +262,14 @@ void choiceInput() {
 	char choice;
 	
 	printf("Seciminizi giriniz: ");
+	
+	// Kullanici ana menudeyken de coin fiyatlarini degistirmemizi saglayan while dongusu.
+	while(!kbhit()) {
+		
+		changeCosts(coins, numberOfCoins);
+		sleep(3);
+	}
+	
 	scanf("\n");
 	scanf("%c", &choice);
 	
@@ -225,6 +307,22 @@ void choiceInput() {
 		sleep(1);
 	}
 	
+	else if(choice == '4') {
+		
+		system("CLS");
+		choice = atoi(&choice);
+		printf("%d. COININ AYRINTILI BILGILERI GORUNTULENIYOR:\n", choice);
+		sleep(1);
+	}
+	
+	else if(choice == '5') {
+		
+		system("CLS");
+		choice = atoi(&choice);
+		printf("%d. COININ AYRINTILI BILGILERI GORUNTULENIYOR:\n", choice);
+		sleep(1);
+	}
+	
 	else if(choice == 'k') {
 		
 		system("CLS");
@@ -252,7 +350,7 @@ void calculateProfitRate() {
 	float sum = user.userBalance;
 	float profitRate;
 	
-	for(i = 0; i < 3; i++) {
+	for(i = 0; i < numberOfCoins; i++) {
 		
 		sum += user.coinNumbers[i] * coins[i].cost;
 		
@@ -265,12 +363,44 @@ void calculateProfitRate() {
 	sleep(2); // Programi 2 saniye bekletir.
 }
 
+// Coinlerin fiyatlarini prýgram süresince (1 - 1000) arasinda rastgele olarak degistiren fonksiyon.
+void changeCosts(struct Coin coins[], int size) {
+	
+	srand(time(0));
+	
+	int i, x;
+	
+	for(i = 0; i < numberOfCoins; i++){
+		
+	   x = rand() % 2001 + (coins[i].cost - 1000);  // Coinin yeni fiyatinin alacagi deger.
+	   
+	   if(x > 0) // Eger alacagi deger 0'dan kucukse atama yapilmaz, yani coinin fiyati degismemis olur.
+	   		
+	   		coins[i].cost = x;
+	}
+}
+
 // Coinlerin detayli bilgilerini gosteren ve coinlerle ilgili islem yapmamizi saglayan fonksiyon. *
 void coinDetails(int choice) {
 	
 	char input;
+	
 	printf("--------------------------------------------\nAdi: %s\nFiyati: %d$\nElinizde bulunan miktar: %.2f adet\n\n",coins[choice - 1].name, coins[choice - 1].cost, user.coinNumbers[choice - 1]);
 	printf("Yapmak istediginiz islemi seciniz:\n1- Alim\n2- Satim\n3- Geri\n4- Cikis\nSeciminizi giriniz: ");
+	sleep(1);
+	
+	while(!kbhit()) {
+		
+		 // kbhit fonksiyonu conio.h kütüphanesinde bulunan bir fonksiyondur. Klavyeden herhangi bir tuþa basýldýðýnda true deðeri döndürür.
+			
+		system("cls");
+		printf("--------------------------------------------\nAdi: %s\nFiyati: %d$\nElinizde bulunan miktar: %.2f adet\n\n",coins[choice - 1].name, coins[choice - 1].cost, user.coinNumbers[choice - 1]);
+		printf("Yapmak istediginiz islemi seciniz:\n1- Alim\n2- Satim\n3- Geri\n4- Cikis\nSeciminizi giriniz: ");
+		changeCosts(coins, numberOfCoins);
+		sleep(3);
+			
+	}
+	
 	scanf("\n");
 	scanf("%c", &input);
 	
@@ -294,7 +424,7 @@ void coinDetails(int choice) {
 	else if(input == '3') {
 		
 		printf("\n");
-		showMenu(coins, 3); // Kullanici geri gitmek istedigi icin ana menu ekranini yazdiran fonksiyonu tekrar cagiriyoruz.
+		showMenu(coins, numberOfCoins); // Kullanici geri gitmek istedigi icin ana menu ekranini yazdiran fonksiyonu tekrar cagiriyoruz.
 		choiceInput(); // Kullanicinin secim yapmasini saglayan fonksiyonu cagiriyoruz.
 	}
 	
@@ -305,6 +435,7 @@ void coinDetails(int choice) {
 		scanf("%c", &input);
 		goto check; // Kullanici gecersiz karakter girdikten sonra alinan inputu tekrardan kontrol asamasindan gecirmek icin programi 115. satira yonlendirdik.
 	}
+	
 }
 
 int main() {
@@ -318,10 +449,17 @@ int main() {
 	
 	while(program_mode) {
 		
-		showMenu(coins, 3);
+		showMenu(coins, numberOfCoins);
 		choiceInput();
 		
 	}
+	
+	// Program sonlandirilmadan once programin son halindeki veriler tekrardan txt dosyalarina yazdirilir.
+	// Bu sayede program kaldigi yerden devam etmis olur.
+	
+	updateCoinCost(ptrArray);
+	updateCoinNumbers(usrPtr);
+	updateUserBalance(usrPtr);
 	
 	return 0;
 }

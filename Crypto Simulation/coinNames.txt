@@ -1,3 +1,5 @@
 Bitcoin
-Etherium
-Dodge
+Ethereum
+Dogecoin
+Litecoin
+Tether
