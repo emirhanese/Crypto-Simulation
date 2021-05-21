@@ -368,15 +368,21 @@ void changeCosts(struct Coin coins[], int size) {
 	
 	srand(time(0));
 	
-	int i, x;
+	int i, value, plusOrMinus; // plusOrMinus degiskenine 0 ile 1 arasinda deger atanacak. Bu sayede %50 ihtimal ile fiyat azalacak, %50 ihtimal ile fiyat artacak.
 	
-	for(i = 0; i < numberOfCoins; i++){
+	for(i = 0; i < size; i++) {
 		
-	   x = rand() % 2001 + (coins[i].cost - 1000);  // Coinin yeni fiyatinin alacagi deger.
-	   
-	   if(x > 0) // Eger alacagi deger 0'dan kucukse atama yapilmaz, yani coinin fiyati degismemis olur.
-	   		
-	   		coins[i].cost = x;
+		value = 1 + rand() % 1001; 
+		plusOrMinus = rand() % 2; 
+		
+		if(plusOrMinus == 1) coins[i].cost += value;
+			
+		else {
+			
+			if(coins[i].cost - value > 0) 
+				coins[i].cost -= value;
+			
+		}
 	}
 }
 
